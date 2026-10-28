@@ -1,0 +1,6 @@
+# Local testing only (not used by Dokploy): publishes the app on http://localhost:3000
+#   docker compose -f docker-compose.yml -f docker-compose.local.yml up --build
+services:
+  app:
+    ports:
+      - "${APP_PORT:-3000}:3000"

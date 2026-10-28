@@ -1,0 +1,17 @@
+{
+  "name": "cricket-live",
+  "version": "1.0.0",
+  "private": true,
+  "description": "PIB vs ZPX live cricket score, served by Node with Postgres storage",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "express": "^5.1.0",
+    "pg": "^8.16.0"
+  }
+}

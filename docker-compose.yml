@@ -1,0 +1,54 @@
+# PIB vs ZPX live cricket - app + Postgres.
+# Dokploy: create a "Docker Compose" service pointing at this file, paste the variables
+# from .env.example into its Environment tab, then add a domain on service "app", port 3000.
+# No host ports are published; Dokploy's Traefik routes the domain to the app container.
+# For local testing see docker-compose.local.yml.
+
+services:
+  app:
+    build: .
+    restart: unless-stopped
+    environment:
+      PORT: 3000
+      PGHOST: db
+      PGPORT: 5432
+      PGUSER: ${POSTGRES_USER:-cricket}
+      PGPASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}
+      PGDATABASE: ${POSTGRES_DB:-cricket}
+      SCORER_EMAIL: ${SCORER_EMAIL:?Set SCORER_EMAIL}
+      SCORER_PASSWORD: ${SCORER_PASSWORD:?Set SCORER_PASSWORD}
+      SESSION_SECRET: ${SESSION_SECRET:?Set SESSION_SECRET (32+ random characters)}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      DRIVE_FOLDER_NAME: ${DRIVE_FOLDER_NAME:-PIB vs ZPX Cricket 2026 – Scorecards}
+    expose:
+      - "3000"
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - backend
+
+  db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-cricket}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:-cricket}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+    networks:
+      - backend
+
+# Named volume so Dokploy volume backups can include the database.
+volumes:
+  pgdata:
+
+# Private network shared by app and db. Dokploy adds dokploy-network to "app" when you attach a domain.
+networks:
+  backend:
